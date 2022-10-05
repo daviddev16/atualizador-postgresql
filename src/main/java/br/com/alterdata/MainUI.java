@@ -47,6 +47,7 @@ public class MainUI extends JFrame {
 		instance = this;
 	}
 	
+	/* open the window */
 	public static void openUI() {
 		EventQueue.invokeLater(() -> {
 			try {
@@ -60,7 +61,7 @@ public class MainUI extends JFrame {
 	}
 	
 	public void createMigrationPage() {
-		
+
 		/* creating JTabbedPanel panel */
 		JPanel migrationPanel = new JPanel();
 		migrationPanel.setBorder(null);
@@ -89,6 +90,10 @@ public class MainUI extends JFrame {
 		
 		/* adds to the contentPane frame */
 		getContentPane().add(tabbedPane);
+	}
+	
+	public static MainUI getMainUI() {
+		return instance;
 	}
 	
 	public MigrationPanel getMigrationPageUI() {

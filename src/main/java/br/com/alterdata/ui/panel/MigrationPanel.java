@@ -23,6 +23,7 @@ import br.com.alterdata.MainUI;
 import br.com.alterdata.core.BackToFront;
 import br.com.alterdata.core.MemoryChecker;
 import br.com.alterdata.core.backup.BackupManager;
+import br.com.alterdata.core.mics.Defaults;
 import br.com.alterdata.core.postgres.data.ConnectionInfo;
 import br.com.alterdata.core.postgres.data.DatabaseConnection;
 import br.com.alterdata.ui.dialog.PostgreSQLConnectionDialog;
@@ -31,7 +32,6 @@ import br.com.alterdata.ui.type.BackupListDataInfo;
 import br.com.alterdata.ui.type.FileBackupDataInfo;
 import br.com.alterdata.ui.type.ImportBackupDataInfo;
 import br.com.alterdata.ui.util.SwingFactory;
-import br.com.alterdata.util.Property;
 
 import static br.com.alterdata.ui.util.SwingFactory.*;
 
@@ -64,7 +64,7 @@ public final class MigrationPanel extends JPanel {
 		lblCaminhoDaPasta.setBounds(15, 55, 166, 26);
 		panel_2.add(lblCaminhoDaPasta);
 
-		txtpostgresqlhome = SwingFactory.checkedTextField(Property.DEFAULT_POSTGRESQL_FOLDER, new JCheckBox() 
+		txtpostgresqlhome = SwingFactory.checkedTextField(Defaults.DEFAULT_POSTGRESQL_FOLDER, new JCheckBox() 
 		{
 			{
 				setBounds(445, 55, 21, 26);
@@ -73,7 +73,7 @@ public final class MigrationPanel extends JPanel {
 		});
 		showContentWhenClicked(txtpostgresqlhome, 2, "Caminho");
 		txtpostgresqlhome.setEditable(false);
-		txtpostgresqlhome.setText(Property.DEFAULT_POSTGRESQL_FOLDER);
+		txtpostgresqlhome.setText(Defaults.DEFAULT_POSTGRESQL_FOLDER);
 		txtpostgresqlhome.setBounds(191, 55, 250, 26);
 		panel_2.add(txtpostgresqlhome);
 		txtpostgresqlhome.setColumns(10);
