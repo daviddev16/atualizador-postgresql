@@ -15,9 +15,10 @@ import br.com.alterdata.core.backup.BackupManager;
 import br.com.alterdata.core.postgres.Query;
 import br.com.alterdata.core.postgres.data.ConnectionInfo;
 import br.com.alterdata.core.postgres.data.DatabaseConnection;
-import br.com.alterdata.ui.panel.HomePanel;
-import br.com.alterdata.ui.util.BorderFactory2;
-import static br.com.alterdata.ui.util.SwingUtilities.*;
+import br.com.alterdata.ui.panel.MigrationPanel;
+import br.com.alterdata.ui.util.SwingFactory;
+
+import static br.com.alterdata.ui.util.SwingFactory.*;
 
 import java.awt.event.ActionListener;
 import java.rmi.AlreadyBoundException;
@@ -36,70 +37,76 @@ public class PostgreSQLConnectionDialog extends JDialog {
 	private JTextField textField_4;
 
 	/* connectar no PostgreSQL com preparedStatement */
-	
+
 	/**
 	 * Launch the application.
 	 */
-	
+
 	/* create a sigleton for homePanel  */
-	public static void open(HomePanel homePanel) {
+	public static void open(MigrationPanel homePanel) {
 		PostgreSQLConnectionDialog dialog = new PostgreSQLConnectionDialog(homePanel);
 		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		dialog.setVisible(true);
 	}
-	
+
 
 	/**
 	 * Create the dialog.
 	 */
-	public PostgreSQLConnectionDialog(HomePanel homePanel) {
+	public PostgreSQLConnectionDialog(MigrationPanel homePanel) {
 		setResizable(false);
 		setTitle("Conexão com o PostgreSQL atual");
 		setBounds(100, 100, 515, 242);
 		setModal(true);
 		getContentPane().setLayout(null);
-		
+
 		setLocationRelativeTo(null);
-		
+
 		JPanel panel = new JPanel();
-		panel.setBorder(BorderFactory2.createTitledBorder("Configuração de conexão"));
+		panel.setBorder(SwingFactory.createTitledBorder("Configuração de conexão"));
 		panel.setBounds(10, 10, 480, 185);
 		getContentPane().add(panel);
 		panel.setLayout(null);
-		
+
 		JTextField hostTextField = rowTextField("Host:", "localhost", 0, 0, panel);
 		JTextField portTextField = rowTextField("Porta:", "5432", 0, 27, panel);
 		JTextField userTextField = rowTextField("Usuário:", "postgres", 0, 54, panel);
 		JPasswordField passwdTextField = rowPasswordField("Senha:", "#abc123#", 0, 81, panel);
-		
+
 		JButton btnNewButton = new JButton("Conectar");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
+
 				ConnectionInfo connInfo = new ConnectionInfo(hostTextField.getText(), portTextField.getText(), 
 						userTextField.getText(), new String(passwdTextField.getPassword()));
-				
+
+				Set<String> dbs = null;
 				try {
-					
-					Set<String> dbs = Query.queryAllDatabases(connInfo);
-					JOptionPane.showMessageDialog(null, dbs);
-				
-					BackupManager bkpManager = BackupManager.getBackupManager();
-					for(String dbName : dbs) {
-						bkpManager.queueToDoBackupPool(new DatabaseConnection(dbName, connInfo));
-					}
-					
-					BackToFront.updateBackupListUI(homePanel.getBackupListUI());
-					
+
+					dbs = Query.queryAllDatabases(connInfo);
 				} catch (Exception e1) {
 					JOptionPane.showMessageDialog(null, e1.getMessage());
 				}
+
+				/* if dbs == null or dbs is empty, failed to query" */
 				
+				JOptionPane.showMessageDialog(null, dbs);
+
+				BackupManager bkpManager = BackupManager.getBackupManager();
+				for(String dbName : dbs) {
+					try {
+						bkpManager.queueToDoBackupPool(new DatabaseConnection(dbName, connInfo));
+					} catch (Exception e1) {
+						JOptionPane.showMessageDialog(null, e1.getMessage());
+					}
+					BackToFront.updateBackupListUI(homePanel.getBackupListUI());
+				}
+
 			}
 		});
 		btnNewButton.setBounds(307, 142, 156, 26);
 		panel.add(btnNewButton);
-		
+
 		JLabel lblNewLabel_1 = new JLabel("<html><i><left>Aviso: Não será possível importar bancos de dados <br>sem antes ter uma conexão com o PostgreSQL atual.</left></i></html>");
 		lblNewLabel_1.setForeground(new Color(139, 0, 0));
 		lblNewLabel_1.setBounds(15, 142, 282, 26);

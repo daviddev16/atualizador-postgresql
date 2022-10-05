@@ -1,20 +1,27 @@
 package br.com.alterdata.ui.util;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
 
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JPopupMenu;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-
-public final class SwingUtilities {
+public final class SwingFactory {
 
 	public static JTextField checkedTextField(String defaultText, JCheckBox checkBox) {
 		Objects.requireNonNull(checkBox);
@@ -27,7 +34,7 @@ public final class SwingUtilities {
 		});
 		return textField;
 	}
-	
+
 	public static JTextField rowTextField(String title, String defaultFieldText, int x, int y, JPanel panel) {
 		panel.add(createLabel(title, 15 + x, 23 + y, 71, 26) );
 		JTextField textField = new JTextField();
@@ -36,7 +43,7 @@ public final class SwingUtilities {
 		panel.add(textField);
 		return textField;
 	}
-	
+
 	public static JPasswordField rowPasswordField(String title, String defaultFieldText, int x, int y, JPanel panel) {
 		panel.add(createLabel(title, 15 + x, 23 + y, 71, 26) );
 		JPasswordField passwordField = new JPasswordField();
@@ -57,10 +64,50 @@ public final class SwingUtilities {
 		});
 	}
 
+	public static void addPopup(Component component, final JPopupMenu popup) {
+		component.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					showMenu(e);
+				}
+			}
+			public void mouseReleased(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					showMenu(e);
+				}
+			}
+			private void showMenu(MouseEvent e) {
+
+				JComponent comp = (JComponent) e.getComponent();
+				if(comp instanceof JTextField && !((JTextField)comp).isEditable())
+					return;
+
+				popup.show(e.getComponent(), e.getX(), e.getY());
+			}
+		});
+	}
+
+	public static Border createTitledBorder(String title) {
+		return new TitledBorder(new LineBorder(Color.LIGHT_GRAY), title, TitledBorder.LEADING, 
+				TitledBorder.TOP, null, Color.GRAY);
+	}
+
 	public static JLabel createLabel(String title, int x, int y, int width, int height) {
 		JLabel label = new JLabel(title);
 		label.setBounds(x, y, width, height);
 		return label;
 	}
+
+	public static JSeparator createSeparator(int x, int y, int width, int height) {
+		JSeparator separator = new JSeparator();
+		separator.setBounds(x, y, width, height);
+		return separator;
+	}
 	
+	public static JPanel createEmptyPanel() {
+		JPanel panel = new JPanel();
+		panel.setBorder(null);
+		panel.setLayout(null);
+		return panel;
+	}
 }

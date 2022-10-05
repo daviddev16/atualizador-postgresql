@@ -20,6 +20,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
 import br.com.alterdata.MainUI;
+import br.com.alterdata.core.BackToFront;
+import br.com.alterdata.core.MemoryChecker;
+import br.com.alterdata.core.backup.BackupManager;
 import br.com.alterdata.core.postgres.data.ConnectionInfo;
 import br.com.alterdata.core.postgres.data.DatabaseConnection;
 import br.com.alterdata.ui.dialog.PostgreSQLConnectionDialog;
@@ -27,26 +30,24 @@ import br.com.alterdata.ui.list.BackupList;
 import br.com.alterdata.ui.type.BackupListDataInfo;
 import br.com.alterdata.ui.type.FileBackupDataInfo;
 import br.com.alterdata.ui.type.ImportBackupDataInfo;
-import br.com.alterdata.ui.util.BorderFactory2;
-import br.com.alterdata.ui.util.SwingUtilities;
+import br.com.alterdata.ui.util.SwingFactory;
 import br.com.alterdata.util.Property;
 
-import static br.com.alterdata.ui.util.SwingUtilities.*;
-import static br.com.alterdata.ui.util.BorderFactory2.*;
+import static br.com.alterdata.ui.util.SwingFactory.*;
 
-public final class HomePanel extends JPanel {
+public final class MigrationPanel extends JPanel {
 
 	private JTextField txtpostgresqlhome;
 	private JTextField txtpastaTempDo;
 	private BackupList databaseBackupInfoList;
 
 	@SuppressWarnings("serial")
-	public HomePanel() {
+	public MigrationPanel() {
 		setPreferredSize(new Dimension(501, 1000));
 		setMinimumSize(new Dimension(501, 1000));
 		setLayout(null);
 		JPanel panel_2 = new JPanel();
-		panel_2.setBorder(BorderFactory2.createTitledBorder("Configuração de instalação"));
+		panel_2.setBorder(SwingFactory.createTitledBorder("Configuração de instalação"));
 		panel_2.setBounds(10, 13, 476, 91);
 		add(panel_2);
 		panel_2.setLayout(null);
@@ -63,7 +64,7 @@ public final class HomePanel extends JPanel {
 		lblCaminhoDaPasta.setBounds(15, 55, 166, 26);
 		panel_2.add(lblCaminhoDaPasta);
 
-		txtpostgresqlhome = SwingUtilities.checkedTextField(Property.DEFAULT_POSTGRESQL_FOLDER, new JCheckBox() 
+		txtpostgresqlhome = SwingFactory.checkedTextField(Property.DEFAULT_POSTGRESQL_FOLDER, new JCheckBox() 
 		{
 			{
 				setBounds(445, 55, 21, 26);
@@ -78,7 +79,7 @@ public final class HomePanel extends JPanel {
 		txtpostgresqlhome.setColumns(10);
 		
 		JPopupMenu popupMenu = new JPopupMenu();
-		MainUI.addPopup(txtpostgresqlhome, popupMenu);
+		SwingFactory.addPopup(txtpostgresqlhome, popupMenu);
 
 		JMenuItem mntmNewMenuItem = new JMenuItem("Localizar pasta...");
 		popupMenu.add(mntmNewMenuItem);
@@ -86,7 +87,7 @@ public final class HomePanel extends JPanel {
 		JPanel panel_2_1 = new JPanel();
 		panel_2_1.setLayout(null);
 		panel_2_1.setBorder(createTitledBorder("Configuração de backup"));
-		panel_2_1.setBounds(10, 114, 476, 462);
+		panel_2_1.setBounds(10, 114, 476, 343);
 		add(panel_2_1);
 
 		JScrollPane scrollPane_1 = new JScrollPane();
@@ -106,7 +107,7 @@ public final class HomePanel extends JPanel {
 		JButton btnNewButton_1 = new JButton("<html><center>Importar banco de dados<br>de uma conexão</<center></html>");
 		btnNewButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				PostgreSQLConnectionDialog.open(HomePanel.this);
+				PostgreSQLConnectionDialog.open(MigrationPanel.this);
 			}
 		});
 		btnNewButton_1.setBounds(211, 254, 191, 44);
@@ -131,7 +132,19 @@ public final class HomePanel extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				if(databaseBackupInfoList.getSelectedIndex() == -1)
 					return;
-				((DefaultListModel<BackupListDataInfo>)databaseBackupInfoList.getModel()).remove(databaseBackupInfoList.getSelectedIndex());
+				
+				//((DefaultListModel<BackupListDataInfo>)databaseBackupInfoList.getModel()).remove(databaseBackupInfoList.getSelectedIndex());
+				
+				if (databaseBackupInfoList.getSelectedValue() instanceof FileBackupDataInfo) {
+					BackupManager.getBackupManager().removeFromDoRestoreQueue(
+							((FileBackupDataInfo)databaseBackupInfoList.getSelectedValue()).getRestoreBackupHandler());
+					
+				} else if (databaseBackupInfoList.getSelectedValue() instanceof ImportBackupDataInfo) {
+					BackupManager.getBackupManager().removeFromDoBackupQueue(
+							((ImportBackupDataInfo)databaseBackupInfoList.getSelectedValue()).getDatabaseConnection());
+				}
+				
+				BackToFront.updateBackupListUI(databaseBackupInfoList);
 			}
 		});
 		btnNewButton_1_1.setIcon(new ImageIcon("icons/remove_selected_database_icon.png"));
@@ -142,12 +155,33 @@ public final class HomePanel extends JPanel {
 		JProgressBar progressBar = new JProgressBar();
 		progressBar.setBounds(176, 790, 146, 14);
 		add(progressBar);
+		
+		JPanel panel_2_1_1 = new JPanel();
+		panel_2_1_1.setBounds(10, 461, 476, 343);
+		add(panel_2_1_1);
+		panel_2_1_1.setLayout(null);
+		panel_2_1_1.setBorder(createTitledBorder("Verificação de espaço disponível"));
+		
+		JButton btnNewButton_2 = new JButton("Calcular espaço necessário para migração");
+		btnNewButton_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				MemoryChecker.printMem("C:\\");
+			}
+		});
+		btnNewButton_2.setBounds(10, 25, 456, 26);
+		panel_2_1_1.add(btnNewButton_2);
+		
+		JLabel lblNewLabel = new JLabel("Espaço Livre / Utilizado:");
+		lblNewLabel.setBounds(10, 62, 147, 14);
+		panel_2_1_1.add(lblNewLabel);
+		
+		JLabel lblEspaoNecessrio = new JLabel("Espaço requerido:");
+		lblEspaoNecessrio.setBounds(10, 80, 147, 14);
+		panel_2_1_1.add(lblEspaoNecessrio);
 
 		JPanel panel_4 = new JPanel();
 
 		panel_4.setLayout(null);
-
-
 
 	}
 	

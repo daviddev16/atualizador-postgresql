@@ -15,10 +15,10 @@ public final class BackToFront {
 		backupList.clear();
 		/* send all backupmanager stuff to ui */
 		BackupManager backupManager = BackupManager.getBackupManager();
-		backupManager.getDoBackupQueue().forEach(dbConn 
+		backupManager.getDoBackupPool().forEach(dbConn 
 				-> backupList.insert( new ImportBackupDataInfo(dbConn) ));
 		
-		backupManager.getDoRestoreQueue().forEach(rbh 
+		backupManager.getDoRestorePool().forEach(rbh 
 				-> backupList.insert( new FileBackupDataInfo(rbh) ));
 	}
 	
