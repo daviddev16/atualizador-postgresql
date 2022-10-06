@@ -5,10 +5,12 @@ import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Objects;
+import java.util.function.Function;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
@@ -63,8 +65,32 @@ public final class SwingFactory {
 			}
 		});
 	}
+	
+	public static Border createTitledBorder(String title) {
+		return new TitledBorder(new LineBorder(Color.LIGHT_GRAY), title, TitledBorder.LEADING, 
+				TitledBorder.TOP, null, Color.GRAY);
+	}
 
-	public static void addPopup(Component component, final JPopupMenu popup) {
+	public static JLabel createLabel(String title, int x, int y, int width, int height) {
+		JLabel label = new JLabel(title);
+		label.setBounds(x, y, width, height);
+		return label;
+	}
+	
+	public static JCheckBox createCheckBoxTo(int x, int y, int width, int height, JPanel contentPane) {
+		JCheckBox checkBox = new JCheckBox();
+		checkBox.setBounds(x, y, width, height);
+		contentPane.add(checkBox);
+		return checkBox;
+	}
+
+	public static JSeparator createSeparator(int x, int y, int width, int height) {
+		JSeparator separator = new JSeparator();
+		separator.setBounds(x, y, width, height);
+		return separator;
+	}
+
+	public static void addPopup(Component component, final JPopupMenu popup, Function<JComponent, Boolean> function) {
 		component.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
 				if (e.isPopupTrigger()) {
@@ -77,31 +103,19 @@ public final class SwingFactory {
 				}
 			}
 			private void showMenu(MouseEvent e) {
-
 				JComponent comp = (JComponent) e.getComponent();
-				if(comp instanceof JTextField && !((JTextField)comp).isEditable())
+				if (!function.apply(comp))
 					return;
-
+				
 				popup.show(e.getComponent(), e.getX(), e.getY());
 			}
 		});
 	}
-
-	public static Border createTitledBorder(String title) {
-		return new TitledBorder(new LineBorder(Color.LIGHT_GRAY), title, TitledBorder.LEADING, 
-				TitledBorder.TOP, null, Color.GRAY);
-	}
-
-	public static JLabel createLabel(String title, int x, int y, int width, int height) {
-		JLabel label = new JLabel(title);
-		label.setBounds(x, y, width, height);
-		return label;
-	}
-
-	public static JSeparator createSeparator(int x, int y, int width, int height) {
-		JSeparator separator = new JSeparator();
-		separator.setBounds(x, y, width, height);
-		return separator;
+	
+	public static JPopupMenu createSingleItemMenu(String title) {
+		JPopupMenu menu = new JPopupMenu();
+		menu.add(new JMenuItem(title));
+		return menu;
 	}
 	
 	public static JPanel createEmptyPanel() {

@@ -1,5 +1,6 @@
 package br.com.alterdata.ui.panel;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,6 +24,7 @@ import br.com.alterdata.MainUI;
 import br.com.alterdata.core.BackToFront;
 import br.com.alterdata.core.MemoryChecker;
 import br.com.alterdata.core.backup.BackupManager;
+import br.com.alterdata.core.installation.Distribution;
 import br.com.alterdata.core.mics.Defaults;
 import br.com.alterdata.core.postgres.data.ConnectionInfo;
 import br.com.alterdata.core.postgres.data.DatabaseConnection;
@@ -37,62 +39,37 @@ import static br.com.alterdata.ui.util.SwingFactory.*;
 
 public final class MigrationPanel extends JPanel {
 
-	private JTextField txtpostgresqlhome;
+	private static final long serialVersionUID = 3221673804106471575L;
+
 	private JTextField txtpastaTempDo;
+
 	private BackupList databaseBackupInfoList;
+
+	private JPanel installationConfigPanel;
+	private JComboBox<Distribution> postgresDistComboBox;
+	private JTextField postgresHomeTextField;
 
 	@SuppressWarnings("serial")
 	public MigrationPanel() {
+
+
 		setPreferredSize(new Dimension(501, 1000));
 		setMinimumSize(new Dimension(501, 1000));
 		setLayout(null);
-		JPanel panel_2 = new JPanel();
-		panel_2.setBorder(SwingFactory.createTitledBorder("Configuração de instalação"));
-		panel_2.setBounds(10, 13, 476, 91);
-		add(panel_2);
-		panel_2.setLayout(null);
 		setBorder(null);
-		
-		panel_2.add(createLabel("Selecione a versão de destino:", 15, 24, 166, 26));
 
-		JComboBox comboBox = new JComboBox();
-		comboBox.setModel(new DefaultComboBoxModel(new String[] {"postgresql-x64-9.6-pkg.zip", "postgresql-x32-9.6-pkg.zip"}));
-		comboBox.setBounds(191, 24, 275, 26);
-		panel_2.add(comboBox);
+		createInstallationConfigPanel();
 
-		JLabel lblCaminhoDaPasta = new JLabel("Caminho da pasta data:");
-		lblCaminhoDaPasta.setBounds(15, 55, 166, 26);
-		panel_2.add(lblCaminhoDaPasta);
 
-		txtpostgresqlhome = SwingFactory.checkedTextField(Defaults.DEFAULT_POSTGRESQL_FOLDER, new JCheckBox() 
-		{
-			{
-				setBounds(445, 55, 21, 26);
-				panel_2.add(this);
-			}
-		});
-		showContentWhenClicked(txtpostgresqlhome, 2, "Caminho");
-		txtpostgresqlhome.setEditable(false);
-		txtpostgresqlhome.setText(Defaults.DEFAULT_POSTGRESQL_FOLDER);
-		txtpostgresqlhome.setBounds(191, 55, 250, 26);
-		panel_2.add(txtpostgresqlhome);
-		txtpostgresqlhome.setColumns(10);
-		
-		JPopupMenu popupMenu = new JPopupMenu();
-		SwingFactory.addPopup(txtpostgresqlhome, popupMenu);
-
-		JMenuItem mntmNewMenuItem = new JMenuItem("Localizar pasta...");
-		popupMenu.add(mntmNewMenuItem);
-
-		JPanel panel_2_1 = new JPanel();
-		panel_2_1.setLayout(null);
-		panel_2_1.setBorder(createTitledBorder("Configuração de backup"));
-		panel_2_1.setBounds(10, 114, 476, 343);
-		add(panel_2_1);
+		JPanel backupConfigPanel = new JPanel();
+		backupConfigPanel.setLayout(null);
+		backupConfigPanel.setBorder(createTitledBorder("Configuração de backup"));
+		backupConfigPanel.setBounds(10, 114, 476, 343);
+		add(backupConfigPanel);
 
 		JScrollPane scrollPane_1 = new JScrollPane();
 		scrollPane_1.setBounds(10, 24, 456, 225);
-		panel_2_1.add(scrollPane_1);
+		backupConfigPanel.add(scrollPane_1);
 
 		databaseBackupInfoList = new BackupList();
 		/*databaseBackupInfoList.insertInfo(new FileBackupDataInfo(new File("C:\\Users\\David\\Downloads\\ALTERDATA_PACK.postgres_backup"), "ALTERDATA_PACK"));
@@ -102,7 +79,7 @@ public final class MigrationPanel extends JPanel {
 
 		JButton btnNewButton = new JButton("<html><center>Importar banco de dados<br>de um arquivo de backup</<center></html>");
 		btnNewButton.setBounds(10, 254, 191, 44);
-		panel_2_1.add(btnNewButton);
+		backupConfigPanel.add(btnNewButton);
 
 		JButton btnNewButton_1 = new JButton("<html><center>Importar banco de dados<br>de uma conexão</<center></html>");
 		btnNewButton_1.addActionListener(new ActionListener() {
@@ -111,80 +88,114 @@ public final class MigrationPanel extends JPanel {
 			}
 		});
 		btnNewButton_1.setBounds(211, 254, 191, 44);
-		panel_2_1.add(btnNewButton_1);
-		
-		panel_2_1.add(createLabel("Caminho para backups: ", 10, 305, 166, 26));
+		backupConfigPanel.add(btnNewButton_1);
+
+		backupConfigPanel.add(createLabel("Caminho para backups: ", 10, 305, 166, 26));
 
 		txtpastaTempDo = checkedTextField("[Pasta Temp do Atualizador]", new JCheckBox() 
 		{
 			{
 				setBounds(440, 305, 21, 26);
-				panel_2_1.add(this);
+				backupConfigPanel.add(this);
 			}
 		});
 		txtpastaTempDo.setEditable(false);
 		txtpastaTempDo.setColumns(10);
 		txtpastaTempDo.setBounds(186, 305, 250, 26);
-		panel_2_1.add(txtpastaTempDo);
+		backupConfigPanel.add(txtpastaTempDo);
 
 		JButton btnNewButton_1_1 = new JButton("");
 		btnNewButton_1_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(databaseBackupInfoList.getSelectedIndex() == -1)
 					return;
-				
+
 				//((DefaultListModel<BackupListDataInfo>)databaseBackupInfoList.getModel()).remove(databaseBackupInfoList.getSelectedIndex());
-				
+
 				if (databaseBackupInfoList.getSelectedValue() instanceof FileBackupDataInfo) {
 					BackupManager.getBackupManager().removeFromDoRestoreQueue(
 							((FileBackupDataInfo)databaseBackupInfoList.getSelectedValue()).getRestoreBackupHandler());
-					
+
 				} else if (databaseBackupInfoList.getSelectedValue() instanceof ImportBackupDataInfo) {
 					BackupManager.getBackupManager().removeFromDoBackupQueue(
 							((ImportBackupDataInfo)databaseBackupInfoList.getSelectedValue()).getDatabaseConnection());
 				}
-				
+
 				BackToFront.updateBackupListUI(databaseBackupInfoList);
 			}
 		});
 		btnNewButton_1_1.setIcon(new ImageIcon("icons/remove_selected_database_icon.png"));
 		btnNewButton_1_1.setToolTipText("Remover banco de dados selecionado...");
 		btnNewButton_1_1.setBounds(412, 254, 54, 44);
-		panel_2_1.add(btnNewButton_1_1);
+		backupConfigPanel.add(btnNewButton_1_1);
 
-		JProgressBar progressBar = new JProgressBar();
-		progressBar.setBounds(176, 790, 146, 14);
-		add(progressBar);
-		
-		JPanel panel_2_1_1 = new JPanel();
-		panel_2_1_1.setBounds(10, 461, 476, 343);
-		add(panel_2_1_1);
-		panel_2_1_1.setLayout(null);
-		panel_2_1_1.setBorder(createTitledBorder("Verificação de espaço disponível"));
-		
-		JButton btnNewButton_2 = new JButton("Calcular espaço necessário para migração");
-		btnNewButton_2.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				MemoryChecker.printMem("C:\\");
-			}
-		});
-		btnNewButton_2.setBounds(10, 25, 456, 26);
-		panel_2_1_1.add(btnNewButton_2);
-		
-		JLabel lblNewLabel = new JLabel("Espaço Livre / Utilizado:");
-		lblNewLabel.setBounds(10, 62, 147, 14);
-		panel_2_1_1.add(lblNewLabel);
-		
-		JLabel lblEspaoNecessrio = new JLabel("Espaço requerido:");
-		lblEspaoNecessrio.setBounds(10, 80, 147, 14);
-		panel_2_1_1.add(lblEspaoNecessrio);
+
+		JPanel memoryConfigPanel = new JPanel();
+		memoryConfigPanel.setBounds(10, 461, 476, 343);
+		add(memoryConfigPanel);
+		memoryConfigPanel.setLayout(null);
+		memoryConfigPanel.setBorder(createTitledBorder("Verificação de espaço disponível"));
 
 		JPanel panel_4 = new JPanel();
 
 		panel_4.setLayout(null);
 
 	}
-	
+
+	public void createInstallationConfigPanel() {
+
+		/* setting up the installation "section" */
+		installationConfigPanel = new JPanel();
+		installationConfigPanel.setBorder(createTitledBorder("Configuração de instalação"));
+		installationConfigPanel.setBounds(10, 13, 476, 91);
+		installationConfigPanel.setLayout(null);
+		
+		postgresDistComboBox = new JComboBox<Distribution>();
+		DefaultComboBoxModel<Distribution> model = new DefaultComboBoxModel<Distribution>();
+		model.addElement(new Distribution("postgresql-x64-9.6-pkg.zip", null));
+		postgresDistComboBox.setModel(model);
+		postgresDistComboBox.setBounds(191, 24, 275, 26);
+		
+
+		/* configurando o textfield para ser editavel ou não */
+		postgresHomeTextField = checkedTextField(
+				Defaults.DEFAULT_POSTGRESQL_FOLDER,  
+				createCheckBoxTo(445, 55, 21, 26, installationConfigPanel)
+				);
+
+		postgresHomeTextField.setEditable(false);
+		postgresHomeTextField.setText(Defaults.DEFAULT_POSTGRESQL_FOLDER);
+		postgresHomeTextField.setBounds(191, 55, 250, 26);
+		postgresHomeTextField.setColumns(10);
+
+		showContentWhenClicked(postgresHomeTextField, 2, "Caminho");
+
+		/* só aparece se o text estiver editavel. */
+		JPopupMenu locateFolderPopupMenu = SwingFactory.createSingleItemMenu("Localizar pasta...");
+		/*((JMenuItem) popupMenu.getComponent(0)).addActionListener((al) -> {
+			System.out.println("ok.");
+		});*/
+
+		addPopup(postgresHomeTextField, locateFolderPopupMenu, 
+				(component) -> component instanceof JTextField && ((JTextField)component).isEditable());
+		
+		/* adicionando componentes no painel e depois o painel no root */
+		installationConfigPanel.add(postgresDistComboBox);
+		installationConfigPanel.add(postgresHomeTextField);
+		installationConfigPanel.add(createLabel("Selecione a versão de destino:", 15, 24, 166, 26));
+		installationConfigPanel.add(createLabel("Caminho da pasta data:", 15, 55, 166, 26));
+		
+		add(installationConfigPanel);
+	}
+
+	public JTextField getPostgresHomeTextField() {
+		return postgresHomeTextField;
+	}
+
+	public JComboBox<Distribution> getDistributionComboBox() {
+		return postgresDistComboBox;
+	}
+
 	public BackupList getBackupListUI() {
 		return databaseBackupInfoList;
 	}
