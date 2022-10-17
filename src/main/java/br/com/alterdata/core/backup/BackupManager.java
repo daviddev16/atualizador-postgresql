@@ -29,6 +29,7 @@ public final class BackupManager {
 
 		doRestoreBackupQueue = new LinkedBlockingQueue<>();
 		doMakeBackupQueue = new LinkedBlockingQueue<>();
+		instance = this;
 	}
 
 	public static void createInstance() throws InstanceAlreadyExistsException {
